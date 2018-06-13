@@ -11,3 +11,4 @@ class MapType(Enum):
     NEGATIVE = 2
     ABSOLUTE = 3
     ORIGINAL = 4
+    INPUT    = 5

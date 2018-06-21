@@ -6,7 +6,7 @@ class SaliencyMethod(Enum):
     DECONV = 3
     TEST = 4
     PERTURBATION = 5
-    #EXCITATION_BP = 5
+    #EXCITATION_BP = 6
 
 
 class MapType(Enum):

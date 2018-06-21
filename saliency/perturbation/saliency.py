@@ -47,7 +47,7 @@ class PerturbationSaliency(Saliency):
 
         #logical or of the input images to get the original image
         for i in range(8):
-            if i!= 4:
+            if i!= 0:
                 image = np.logical_or(image, input2[:, :, i].numpy())*1
 
         #get the number of objects in the image
@@ -96,6 +96,11 @@ class PerturbationSaliency(Saliency):
         # index: 6 layer: Friend
         # index: 7 layer: Enemy
 
+        # index: 0 choice: 1 choice description: Q4
+        # index: 1 choice: 2 choice description: Q1
+        # index: 2 choice: 3 choice description: Q3
+        # index: 3 choice: 4 choice description: Q2
+
         for i in range(8):
             for j in range(num_objects):
                 for k in range(indices[j].shape[0]):
@@ -110,26 +115,39 @@ class PerturbationSaliency(Saliency):
                             input2[:, :, i][x][y] = 1
 
                     elif i==0: #binary variables, HP
-                        input2[:, :, i][x][y] += 0.02
-                    elif i==2 or i==4 or i==6: #small towers and small cities and Friend
-                        if input2[:, :, i][x][y] == 1:
-                            input2[:, :, i][x][y] = 0
-                            input2[:, :, i+1][x][y] = 1
+                        temp = 0.3*input2[:, :, i][x][y]
+                        input2[:, :, i][x][y] += temp
+                    elif i%2 == 0: #small towers and small cities and Friend
+                        if j!=2: #don't perturb the next image in series for agent
+                            if input2[:, :, i][x][y] == 1:
+                                input2[:, :, i][x][y] = 0
+                                input2[:, :, i+1][x][y] = 1
+                            else:
+                                input2[:, :, i][x][y] = 1
+                                input2[:, :, i+1][x][y] = 0
                         else:
-                            input2[:, :, i][x][y] = 1
-                            input2[:, :, i+1][x][y] = 0
-                    elif i==3 or i==5 or i==7: #big towers and big cities and enemy
-                        if input2[:, :, i][x][y] == 1:
-                            input2[:, :, i][x][y] = 0
-                            input2[:, :, i-1][x][y] = 1
+                            if input2[:, :, i][x][y] == 1:
+                                input2[:, :, i][x][y] = 0
+                            else:
+                                input2[:, :, i][x][y] = 1
+                    elif i%2 == 1 and i!=1 : #big towers and big cities and enemy
+                        if j!=2:
+                            if input2[:, :, i][x][y] == 1:
+                                input2[:, :, i][x][y] = 0
+                                input2[:, :, i-1][x][y] = 1
+                            else:
+                                input2[:, :, i][x][y] = 1
+                                input2[:, :, i-1][x][y] = 0
                         else:
-                            input2[:, :, i][x][y] = 1
-                            input2[:, :, i-1][x][y] = 0
+                            if input2[:, :, i][x][y] == 1:
+                                input2[:, :, i][x][y] = 0
+                            else:
+                                input2[:, :, i][x][y] = 1
 
                 perturbed_output = self.model(input2.view(1, 12800))
                 saliency = (perturbed_output - output)
                 if i==0:
-                    saliency = saliency/0.02
+                    saliency = saliency/temp
                 #print(saliency)
                 input2 = input.clone()
                 input2 = input2.view(40, 40, 8)
@@ -137,7 +155,7 @@ class PerturbationSaliency(Saliency):
                 for k in range(indices[j].shape[0]):
                     x = indices[j][k][0]
                     y = indices[j][k][1]
-                    saliencies[:, :, i][x][y] = saliency[0][target]
+                    saliencies[:, :, i][x][y] = saliency[:, target]
                 #print(saliency[0][target])
 
 

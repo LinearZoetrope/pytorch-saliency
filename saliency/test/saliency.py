@@ -47,7 +47,7 @@ class TestSaliency(Saliency):
 
         #logical or of the input images to get the original image
         for i in range(8):
-            if i!= 4:
+            if i!= 0:
                 image = np.logical_or(image, input2[:, :, i].numpy())*1
 
         #get the number of objects in the image
@@ -109,11 +109,12 @@ class TestSaliency(Saliency):
                             input2[:, :, i][x][y] = 1
 
                     else: #binary variables
-                        input2[:, :, i][x][y] += 0.02
+                        temp = 0.3*input2[:, :, i][x][y]
+                        input2[:, :, i][x][y] += temp
                 perturbed_output = self.model(input2.view(1, 12800))
                 saliency = (perturbed_output - output)
                 if i==0:
-                    saliency = saliency/0.02
+                    saliency = saliency/temp
                 #print(saliency)
                 input2 = input.clone()
                 input2 = input2.view(40, 40, 8)
@@ -121,7 +122,7 @@ class TestSaliency(Saliency):
                 for k in range(indices[j].shape[0]):
                     x = indices[j][k][0]
                     y = indices[j][k][1]
-                    saliencies[:, :, i][x][y] = saliency[0][target]
+                    saliencies[:, :, i][x][y] = saliency[:, target]
                 #print(saliency[0][target])
 
 
